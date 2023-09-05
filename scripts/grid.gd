@@ -1,5 +1,5 @@
 extends Node2D
-
+# para primer commit
 # state machine
 enum {WAIT, MOVE}
 var state
