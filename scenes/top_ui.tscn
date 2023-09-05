@@ -24,8 +24,8 @@ anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 16.0
-offset_top = 18.0
-offset_right = -15.0
+offset_top = 25.0
+offset_right = 180.0
 offset_bottom = -49.0
 grow_horizontal = 2
 grow_vertical = 2
@@ -39,7 +39,7 @@ alignment = 1
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 5
-text = "000"
+text = "00"
 label_settings = SubResource("LabelSettings_yrpvj")
 horizontal_alignment = 1
 
@@ -49,6 +49,14 @@ size_flags_horizontal = 3
 size_flags_vertical = 5
 text = "00"
 label_settings = SubResource("LabelSettings_8bjlm")
+horizontal_alignment = 1
+
+[node name="steps_label" type="Label" parent="MarginContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 5
+text = "00"
+label_settings = SubResource("LabelSettings_yrpvj")
 horizontal_alignment = 1
 
 [node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/HBoxContainer"]
