@@ -11,7 +11,7 @@ var state
 @export var y_start: int
 @export var offset: int
 @export var y_offset: int
-@export var time_mode: bool = false
+@export var time_mode: bool = true
 
 # piece array
 var possible_pieces = [
@@ -38,19 +38,19 @@ var final_touch = Vector2.ZERO
 var is_controlling = false
 
 # scoring variables and signals
-var current_score = 0
-var current_streak = 1
-var current_bonus = 30
-var is_valid_swap = false
+var score_actual = 0
+var racha_actual = 1
+var bonus_actual = 30
+var flag_movimiento = false
 
 signal score_updated(new_score)
 
 # counter variables and signals
-var remaining_time = 60  # Establece el tiempo inicial en segundos
+var time = 60  # Establece el tiempo inicial en segundos
 signal time_updated(new_time)
 
-var max_moves = 20  # Número máximo de movimientos
-var current_moves = 0  # Contador de movimientos actual
+var max_movimientos = 20  # Número máximo de movimientos
+var movimientos_actuales = 0  # Contador de movimientos actual
 signal steps_updated(new_steps)
 
 
@@ -144,21 +144,21 @@ func swap_pieces(column, row, direction: Vector2):
 	if not move_checked:
 		find_matches()
 	else: 
-		current_streak = 1
-		current_bonus = 30
-		is_valid_swap = false
+		racha_actual = 1
+		bonus_actual = 30
+		flag_movimiento = false
  
 func correct_move():
-	current_score += current_bonus  # Suma el bono actual al puntaje
-	current_streak += 1  # Incrementa la racha
+	score_actual += bonus_actual  # Suma el bono actual al puntaje
+	racha_actual += 1  # Incrementa la racha
 	# Incrementa el bono para el próximo movimiento válido
-	current_bonus = 30 * current_streak
-	emit_signal("score_updated", current_score)
+	bonus_actual = 30 * racha_actual
+	emit_signal("score_updated", score_actual)
 
 func incorrect_move():
-	current_streak = 1
-	current_bonus = 30
-	emit_signal("score_updated", current_score)
+	racha_actual = 1
+	bonus_actual = 30
+	emit_signal("score_updated", score_actual)
 
 func store_info(first_piece, other_piece, place, direction):
 	piece_one = first_piece
@@ -190,13 +190,12 @@ func _process(delta):
 	if state == MOVE:
 		touch_input()
 		if time_mode:
-			remaining_time -= delta
-			if remaining_time <= 0:
+			time -= delta
+			if time <= 0:
 				game_over()
 			else:
-				emit_signal("time_updated", remaining_time)
-		else:
-			pass
+				emit_signal("time_updated", time)
+		game_win()
 
 func find_matches():
 	for i in width:
@@ -243,7 +242,7 @@ func destroy_matched():
 				all_pieces[i][j].queue_free()
 				all_pieces[i][j] = null
 	move_checked = true
-	is_valid_swap = was_matched
+	flag_movimiento = was_matched
 	if was_matched:
 		get_parent().get_node("collapse_timer").start()
 	else:
@@ -298,20 +297,18 @@ func check_after_refill():
 
 func _on_destroy_timer_timeout():
 	if not time_mode:  # Solo contar movimientos si estamos en modo de movimientos
-		if current_moves < max_moves:
-			current_moves += 1  # Incrementa el contador de movimientos
-			emit_signal("steps_updated", max_moves - current_moves)  # Emite la señal de pasos actualizados
-		if current_moves >= max_moves:
+		if movimientos_actuales < max_movimientos:
+			movimientos_actuales += 1  # Incrementa el contador de movimientos
+			emit_signal("steps_updated", max_movimientos - movimientos_actuales)  # Emite la señal de pasos actualizados
+		if movimientos_actuales >= max_movimientos:
 			game_over()  # Llama a la función de juego terminado si se alcanza el máximo de movimientos
-	print("destroy")
 	destroy_matched()
 
 func _on_collapse_timer_timeout():
-	if is_valid_swap:
+	if flag_movimiento:
 		correct_move()
 	else:
 		incorrect_move()
-	print("collapse")
 	collapse_columns()
 
 func _on_refill_timer_timeout():
@@ -319,11 +316,11 @@ func _on_refill_timer_timeout():
 
 func game_over():
 	state = WAIT
-	remaining_time = 0  # Detiene el contador de tiempo
-	max_moves = 0  # Deshabilita los movimientos disponibles
+	time = 0  # Detiene el contador de tiempo
+	max_movimientos = 0  # Deshabilita los movimientos disponibles
 	print("GAME OVER")
 	
 func game_win():
-	if current_score >= 2000:
+	if score_actual >= 2000:
 		state = WAIT  # Detiene el juego
 		print("YOU WIN")
