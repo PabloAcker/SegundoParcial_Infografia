@@ -11,6 +11,7 @@ var state
 @export var y_start: int
 @export var offset: int
 @export var y_offset: int
+@export var time_mode: bool = false
 
 # piece array
 var possible_pieces = [
@@ -41,13 +42,14 @@ var current_score = 0
 var current_streak = 1
 var current_bonus = 30
 var is_valid_swap = false
+
 signal score_updated(new_score)
 
 # counter variables and signals
-var remaining_time = 80  # Establece el tiempo inicial en segundos
+var remaining_time = 60  # Establece el tiempo inicial en segundos
 signal time_updated(new_time)
 
-var max_moves = 30  # Número máximo de movimientos
+var max_moves = 20  # Número máximo de movimientos
 var current_moves = 0  # Contador de movimientos actual
 signal steps_updated(new_steps)
 
@@ -187,14 +189,14 @@ func touch_difference(grid_1, grid_2):
 func _process(delta):
 	if state == MOVE:
 		touch_input()
-		# Actualiza el contador de tiempo
-		remaining_time -= delta
-		if remaining_time <= 0:
-			# Aquí puedes manejar la lógica cuando el tiempo se agote (por ejemplo, game over)
-			game_over()
+		if time_mode:
+			remaining_time -= delta
+			if remaining_time <= 0:
+				game_over()
+			else:
+				emit_signal("time_updated", remaining_time)
 		else:
-			# Emitir la señal de tiempo actualizado
-			emit_signal("time_updated", remaining_time)
+			pass
 
 func find_matches():
 	for i in width:
@@ -240,7 +242,6 @@ func destroy_matched():
 				was_matched = true
 				all_pieces[i][j].queue_free()
 				all_pieces[i][j] = null
-				
 	move_checked = true
 	is_valid_swap = was_matched
 	if was_matched:
@@ -296,11 +297,12 @@ func check_after_refill():
 	move_checked = false
 
 func _on_destroy_timer_timeout():
-	if current_moves < max_moves:
-		current_moves += 1  # Incrementa el contador de movimientos
-		emit_signal("steps_updated", max_moves - current_moves)  # Emite la señal de pasos actualizados
-	if current_moves >= max_moves:
-		game_over()  # Llama a la función de juego terminado si se alcanza el máximo de movimientos
+	if not time_mode:  # Solo contar movimientos si estamos en modo de movimientos
+		if current_moves < max_moves:
+			current_moves += 1  # Incrementa el contador de movimientos
+			emit_signal("steps_updated", max_moves - current_moves)  # Emite la señal de pasos actualizados
+		if current_moves >= max_moves:
+			game_over()  # Llama a la función de juego terminado si se alcanza el máximo de movimientos
 	print("destroy")
 	destroy_matched()
 
@@ -317,4 +319,11 @@ func _on_refill_timer_timeout():
 
 func game_over():
 	state = WAIT
-	print("game over")
+	remaining_time = 0  # Detiene el contador de tiempo
+	max_moves = 0  # Deshabilita los movimientos disponibles
+	print("GAME OVER")
+	
+func game_win():
+	if current_score >= 2000:
+		state = WAIT  # Detiene el juego
+		print("YOU WIN")
