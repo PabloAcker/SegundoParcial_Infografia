@@ -24,33 +24,27 @@ var possible_pieces = [
 ]
 # current pieces in scene
 var all_pieces = []
-
-# swap back
 var piece_one = null
 var piece_two = null
 var last_place = Vector2.ZERO
 var last_direction = Vector2.ZERO
 var move_checked = false
-
-# touch variables
 var first_touch = Vector2.ZERO
 var final_touch = Vector2.ZERO
 var is_controlling = false
-
-# scoring variables and signals
 var score_actual = 0
 var racha_actual = 1
-var bonus_actual = 30
+var bonus_actual = 10
 var flag_movimiento = false
 
 signal score_updated(new_score)
 
 # counter variables and signals
-var time = 60  # Establece el tiempo inicial en segundos
+@export var time = 60 #tiempo inicial en segundos
 signal time_updated(new_time)
 
-var max_movimientos = 20  # Número máximo de movimientos
-var movimientos_actuales = 0  # Contador de movimientos actual
+@export var max_movimientos = 20
+var movimientos_actuales = 0 
 signal steps_updated(new_steps)
 
 
@@ -145,19 +139,18 @@ func swap_pieces(column, row, direction: Vector2):
 		find_matches()
 	else: 
 		racha_actual = 1
-		bonus_actual = 30
+		bonus_actual = 10
 		flag_movimiento = false
  
 func correct_move():
-	score_actual += bonus_actual  # Suma el bono actual al puntaje
-	racha_actual += 1  # Incrementa la racha
-	# Incrementa el bono para el próximo movimiento válido
-	bonus_actual = 30 * racha_actual
+	score_actual += bonus_actual 
+	racha_actual += 1 
+	bonus_actual = 10 * racha_actual
 	emit_signal("score_updated", score_actual)
 
 func incorrect_move():
 	racha_actual = 1
-	bonus_actual = 30
+	bonus_actual = 10
 	emit_signal("score_updated", score_actual)
 
 func store_info(first_piece, other_piece, place, direction):
@@ -293,15 +286,15 @@ func check_after_refill():
 				get_parent().get_node("destroy_timer").start()
 				return
 	state = MOVE
+	if not time_mode:  
+		if movimientos_actuales < max_movimientos:
+			movimientos_actuales += 1  
+			emit_signal("steps_updated", max_movimientos - movimientos_actuales)  
+		if movimientos_actuales >= max_movimientos:
+			game_over()
 	move_checked = false
 
-func _on_destroy_timer_timeout():
-	if not time_mode:  # Solo contar movimientos si estamos en modo de movimientos
-		if movimientos_actuales < max_movimientos:
-			movimientos_actuales += 1  # Incrementa el contador de movimientos
-			emit_signal("steps_updated", max_movimientos - movimientos_actuales)  # Emite la señal de pasos actualizados
-		if movimientos_actuales >= max_movimientos:
-			game_over()  # Llama a la función de juego terminado si se alcanza el máximo de movimientos
+func _on_destroy_timer_timeout():  
 	destroy_matched()
 
 func _on_collapse_timer_timeout():
@@ -316,11 +309,11 @@ func _on_refill_timer_timeout():
 
 func game_over():
 	state = WAIT
-	time = 0  # Detiene el contador de tiempo
-	max_movimientos = 0  # Deshabilita los movimientos disponibles
+	time = 0 
+	max_movimientos = 0  
 	print("GAME OVER")
 	
 func game_win():
 	if score_actual >= 2000:
-		state = WAIT  # Detiene el juego
+		state = WAIT
 		print("YOU WIN")
