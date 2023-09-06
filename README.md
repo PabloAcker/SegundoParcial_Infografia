@@ -1,3 +1,6 @@
 # SegundoParcial_Infografia
 
-Este es un readme para candy crush en godot
+**Nombre: Pablo Francisco Acker Mancilla** -
+**Código: 61203** -
+**UPB** -
+**Ingeniería de Sistemas Computacionales**
