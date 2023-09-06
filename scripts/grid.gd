@@ -34,7 +34,7 @@ var final_touch = Vector2.ZERO
 var is_controlling = false
 var score_actual = 0
 var racha_actual = 1
-var bonus_actual = 10
+var bonus_actual = 0
 var flag_movimiento = false
 
 signal score_updated(new_score)
@@ -139,7 +139,7 @@ func swap_pieces(column, row, direction: Vector2):
 		find_matches()
 	else: 
 		racha_actual = 1
-		bonus_actual = 10
+		bonus_actual = 0
 		flag_movimiento = false
  
 func correct_move():
@@ -147,10 +147,13 @@ func correct_move():
 	racha_actual += 1 
 	bonus_actual = 10 * racha_actual
 	emit_signal("score_updated", score_actual)
+	
+	# Llama a la función para destruir las piezas coincidentes
+	destroy_matched()
 
 func incorrect_move():
 	racha_actual = 1
-	bonus_actual = 10
+	bonus_actual = 0
 	emit_signal("score_updated", score_actual)
 
 func store_info(first_piece, other_piece, place, direction):
@@ -228,12 +231,17 @@ func find_matches():
 	
 func destroy_matched():
 	var was_matched = false
+	var combo_multiplier = 0
 	for i in width:
 		for j in height:
 			if all_pieces[i][j] != null and all_pieces[i][j].matched:
 				was_matched = true
 				all_pieces[i][j].queue_free()
 				all_pieces[i][j] = null
+				combo_multiplier += 1
+	# Aumenta el puntaje en función del combo_multiplier
+	if combo_multiplier >= 3:
+		score_actual += combo_multiplier * 10
 	move_checked = true
 	flag_movimiento = was_matched
 	if was_matched:
